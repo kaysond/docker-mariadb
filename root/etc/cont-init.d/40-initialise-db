@@ -78,6 +78,7 @@ GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
 DROP DATABASE IF EXISTS test ;
 EONEWSQL
 echo "Setting Up Initial Databases"
+fi
 
 # set some permissions needed before we begin initialising
 chown -R abc:abc /config/log/mysql /var/run/mysqld
