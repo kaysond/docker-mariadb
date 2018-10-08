@@ -44,9 +44,36 @@ else
 MYSQL_PASS="CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;"
 fi
 
-# add rest of sql commands based on password set or not
+# test for custom username and database variables
+if [ -z "$MYSQL_PASSWORD" ]; then
+TEST_LEN=0
+else
+TEST_LEN=${#MYSQL_PASSWORD}
+fi
+if [ "$TEST_LEN" -lt "4"]; then
+MYSQL_USER="CREATE USER '${MYSQL_USER}'@'%' IDENTIFIED BY '' ;"
+MYSQL_DATABASE="CREATE DATABASE '${MYSQL_DATABASE}' ;"
+MYSQL_DATABASE_PERMS="GRANT ALL ON '${MYSQL_DATABASE}'.* to '${MYSQL_USER}'@'%' ;"
+else 
+MYSQL_USER="CREATE USER '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}' ;"
+MYSQL_DATABASE="CREATE DATABASE '${MYSQL_DATABASE}'"
+MYSQL_DATABASE_PERMS="GRANT ALL ON '${MYSQL_DATABASE}'.* to '${MYSQL_USER}'@'%' ;"
+fi
+
+# add rest of sql commands based on password set or not, and whether user has added their own user/password/database arguements 
+if [ -z "$MYSQL_PASSWORD" ]; then
 cat >> "$tempSqlFile" <<-EONEWSQL
 $MYSQL_PASS
+GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
+DROP DATABASE IF EXISTS test ;
+EONEWSQL
+echo "Setting Up Initial Databases"
+else
+cat >> "$tempSqlFile" <<-EONEWSQL
+$MYSQL_PASS
+$MYSQL_USER
+$MYSQL_DATABASE
+$MYSQL_DATABASE_PERMS
 GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
 DROP DATABASE IF EXISTS test ;
 EONEWSQL
